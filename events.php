@@ -13,7 +13,7 @@ include __DIR__ . '/includes/header.php';
   <div class="grid-cards">
     <?php foreach ($events as $ev): ?>
       <div class="event-card">
-        <?php if ($ev['image']): ?><img src="<?= e($ev['image']) ?>" alt="<?= e($ev['title']) ?>"><?php endif; ?>
+        <?php if ($ev['image']): ?><img src="<?= e(img_url($ev['image'])) ?>" alt="<?= e($ev['title']) ?>"><?php endif; ?>
         <div class="event-body">
           <?php if ($ev['event_date']): ?><span class="event-date-badge"><?= e(date('d M Y', strtotime($ev['event_date']))) ?></span><?php endif; ?>
           <h3><?= e($ev['title']) ?></h3>

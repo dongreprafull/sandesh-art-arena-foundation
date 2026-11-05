@@ -3,24 +3,26 @@ $pageTitle = 'Site Settings';
 require_once __DIR__ . '/includes/admin_header.php';
 $pdo = db();
 
+$s = $pdo->query("SELECT * FROM foundation_settings WHERE id = 1")->fetch() ?: [];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fields = ['about_text', 'mission_text', 'vision_text', 'donation_policy_text', 'upi_id', 'upi_qr_image', 'razorpay_key_id', 'razorpay_key_secret'];
+    $fields = ['about_text', 'mission_text', 'vision_text', 'donation_policy_text', 'upi_id', 'razorpay_key_id', 'razorpay_key_secret'];
     $vals = [];
     foreach ($fields as $f) {
         $v = trim($_POST[$f] ?? '');
         $vals[] = $v === '' ? null : $v;
     }
+    $fields[] = 'upi_qr_image';
+    $vals[] = handle_upload('upi_qr_image', $s['upi_qr_image'] ?? null, 'uploads/settings');
     $sets = implode(', ', array_map(fn($f) => "`$f` = ?", $fields));
     $pdo->prepare("UPDATE foundation_settings SET $sets WHERE id = 1")->execute($vals);
     header('Location: settings.php?saved=1');
     exit;
 }
-
-$s = $pdo->query("SELECT * FROM foundation_settings WHERE id = 1")->fetch() ?: [];
 ?>
 <?php if (isset($_GET['saved'])): ?><div class="flash ok">Settings saved.</div><?php endif; ?>
 
-<form class="admin-form settings-section" method="post">
+<form class="admin-form settings-section" method="post" enctype="multipart/form-data">
   <h2>About &amp; Mission</h2>
   <div>
     <label for="about_text">About Text</label>
@@ -47,8 +49,9 @@ $s = $pdo->query("SELECT * FROM foundation_settings WHERE id = 1")->fetch() ?: [
     <input id="upi_id" name="upi_id" value="<?= e($s['upi_id'] ?? '') ?>" placeholder="sandeshfoundation@upi">
   </div>
   <div>
-    <label for="upi_qr_image">UPI QR Code Image URL</label>
-    <input id="upi_qr_image" name="upi_qr_image" value="<?= e($s['upi_qr_image'] ?? '') ?>">
+    <label for="upi_qr_image">UPI QR Code Image</label>
+    <?php if (!empty($s['upi_qr_image'])): ?><div style="margin:.3rem 0"><img src="<?= e(img_url($s['upi_qr_image'])) ?>" alt="" style="max-width:140px;border-radius:6px;display:block"></div><?php endif; ?>
+    <input id="upi_qr_image" name="upi_qr_image" type="file" accept="image/*">
   </div>
 
   <h2>Razorpay (Online Payments)</h2>

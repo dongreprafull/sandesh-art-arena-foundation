@@ -8,7 +8,7 @@ $tables = [
             ]],
             'title' => ['label' => 'Title', 'type' => 'text', 'required' => true],
             'description' => ['label' => 'Description', 'type' => 'textarea'],
-            'image' => ['label' => 'Image URL', 'type' => 'text'],
+            'image' => ['label' => 'Image', 'type' => 'image'],
             'sort_order' => ['label' => 'Sort Order', 'type' => 'number'],
         ],
     ],
@@ -19,7 +19,7 @@ $tables = [
             'description' => ['label' => 'Description', 'type' => 'textarea'],
             'event_date' => ['label' => 'Event Date', 'type' => 'date'],
             'location' => ['label' => 'Location', 'type' => 'text'],
-            'image' => ['label' => 'Image URL', 'type' => 'text'],
+            'image' => ['label' => 'Image', 'type' => 'image'],
             'sort_order' => ['label' => 'Sort Order', 'type' => 'number'],
         ],
     ],
@@ -28,7 +28,7 @@ $tables = [
         'fields' => [
             'title' => ['label' => 'Title', 'type' => 'text'],
             'item_type' => ['label' => 'Type', 'type' => 'select', 'required' => true, 'options' => ['photo' => 'Photo', 'video' => 'Video']],
-            'url' => ['label' => 'Media URL', 'type' => 'text', 'required' => true],
+            'url' => ['label' => 'Photo / Video File', 'type' => 'media'],
             'album' => ['label' => 'Album', 'type' => 'text'],
             'sort_order' => ['label' => 'Sort Order', 'type' => 'number'],
         ],
@@ -57,7 +57,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
     $id = (int) ($_POST['id'] ?? 0);
     $cols = [];
     $vals = [];
+    $existingRow = null;
+    if ($id) {
+        $stmt = $pdo->prepare("SELECT * FROM `$table` WHERE id = ?");
+        $stmt->execute([$id]);
+        $existingRow = $stmt->fetch();
+    }
     foreach ($config['fields'] as $key => $field) {
+        if ($field['type'] === 'image') {
+            $cols[] = $key;
+            $vals[] = handle_upload($key, $existingRow[$key] ?? null, 'uploads/images');
+            continue;
+        }
+        if ($field['type'] === 'media') {
+            $cols[] = $key;
+            $vals[] = handle_upload($key, $existingRow[$key] ?? null, 'uploads/gallery', ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm', 'mov']);
+            continue;
+        }
         $val = trim($_POST[$key] ?? '');
         if ($field['type'] === 'number') $val = $val === '' ? 0 : (int) $val;
         $cols[] = $key;
@@ -86,14 +102,26 @@ if (in_array($action, ['add', 'edit'], true)) {
     }
     ?>
     <h2><?= $action === 'edit' ? 'Edit' : 'Add' ?> <?= e($config['label']) ?></h2>
-    <form class="admin-form" method="post">
+    <form class="admin-form" method="post" enctype="multipart/form-data">
       <input type="hidden" name="action" value="save">
       <input type="hidden" name="id" value="<?= (int) ($editRow['id'] ?? 0) ?>">
       <?php foreach ($config['fields'] as $key => $field): ?>
         <div>
           <label for="<?= e($key) ?>"><?= e($field['label']) ?></label>
           <?php $val = $editRow[$key] ?? ''; ?>
-          <?php if ($field['type'] === 'textarea'): ?>
+          <?php if ($field['type'] === 'image' || $field['type'] === 'media'): ?>
+            <?php if (!empty($val)): ?>
+              <div style="margin:.3rem 0">
+                <?php if ($field['type'] === 'media' && preg_match('/\.(mp4|webm|mov)$/i', $val)): ?>
+                  <video src="<?= e(img_url($val)) ?>" style="max-width:200px;border-radius:6px" controls></video>
+                <?php else: ?>
+                  <img src="<?= e(img_url($val)) ?>" alt="" style="max-width:140px;border-radius:6px;display:block">
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
+            <input id="<?= e($key) ?>" name="<?= e($key) ?>" type="file" accept="<?= $field['type'] === 'media' ? 'image/*,video/*' : 'image/*' ?>">
+            <p class="muted" style="margin-top:.3rem"><?= $val ? 'Choose a new file to replace the current one, or leave blank to keep it.' : 'Upload a file.' ?></p>
+          <?php elseif ($field['type'] === 'textarea'): ?>
             <textarea id="<?= e($key) ?>" name="<?= e($key) ?>" <?= !empty($field['required']) ? 'required' : '' ?>><?= e($val) ?></textarea>
           <?php elseif ($field['type'] === 'select'): ?>
             <select id="<?= e($key) ?>" name="<?= e($key) ?>">
@@ -130,7 +158,17 @@ if (in_array($action, ['add', 'edit'], true)) {
         <?php foreach ($rows as $row): ?>
           <tr>
             <?php foreach ($config['fields'] as $key => $field): ?>
-              <?php if ($field['type'] !== 'textarea'): ?>
+              <?php if ($field['type'] === 'image' || $field['type'] === 'media'): ?>
+                <td>
+                  <?php if (!empty($row[$key])): ?>
+                    <?php if ($field['type'] === 'media' && preg_match('/\.(mp4|webm|mov)$/i', (string) $row[$key])): ?>
+                      <a href="<?= e(img_url($row[$key])) ?>" target="_blank">Video ↗</a>
+                    <?php else: ?>
+                      <img src="<?= e(img_url($row[$key])) ?>" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:5px">
+                    <?php endif; ?>
+                  <?php endif; ?>
+                </td>
+              <?php elseif ($field['type'] !== 'textarea'): ?>
                 <td><?= e((string) ($row[$key] ?? '')) ?></td>
               <?php endif; ?>
             <?php endforeach; ?>

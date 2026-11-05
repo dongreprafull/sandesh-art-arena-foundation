@@ -76,4 +76,38 @@ function fsettings(): array {
     return $s;
 }
 
+/**
+ * Handles an optional file upload for a form field (images, or images+video when
+ * $allowedExt is widened). Returns the stored relative path, or keeps $existing
+ * unchanged if no new valid file was uploaded (so edits don't wipe the image).
+ */
+function handle_upload(string $field, ?string $existing, string $subdir = 'uploads/images', array $allowedExt = ['jpg', 'jpeg', 'png', 'webp', 'gif']): ?string {
+    if (empty($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) {
+        return $existing;
+    }
+    if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+        return $existing;
+    }
+    $ext = strtolower(pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExt, true)) {
+        return $existing;
+    }
+    $dir = __DIR__ . '/' . $subdir;
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    $name = 'img_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    if (!move_uploaded_file($_FILES[$field]['tmp_name'], $dir . '/' . $name)) {
+        return $existing;
+    }
+    return $subdir . '/' . $name;
+}
+
+/** Renders a stored image/media path correctly whether it's an old full URL or a new relative upload path. */
+function img_url(?string $path): string {
+    if (!$path) return '';
+    if (preg_match('#^https?://#i', $path)) return $path;
+    return '/' . ltrim($path, '/');
+}
+
 define('ASSET_VERSION', '1');

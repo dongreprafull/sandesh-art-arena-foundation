@@ -20,7 +20,7 @@ include __DIR__ . '/includes/header.php';
   <div class="grid-cards">
     <?php foreach ($items as $a): ?>
       <div class="tile">
-        <?php if ($a['image']): ?><img src="<?= e($a['image']) ?>" alt="<?= e($a['title']) ?>"><?php endif; ?>
+        <?php if ($a['image']): ?><img src="<?= e(img_url($a['image'])) ?>" alt="<?= e($a['title']) ?>"><?php endif; ?>
         <div class="tile-body">
           <h3><?= e($a['title']) ?></h3>
           <p><?= nl2br(e($a['description'] ?? '')) ?></p>

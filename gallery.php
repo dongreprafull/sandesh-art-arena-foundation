@@ -14,9 +14,9 @@ include __DIR__ . '/includes/header.php';
     <?php foreach ($items as $g): ?>
       <figure>
         <?php if ($g['item_type'] === 'video'): ?>
-          <video src="<?= e($g['url']) ?>" controls></video>
+          <video src="<?= e(img_url($g['url'])) ?>" controls></video>
         <?php else: ?>
-          <img src="<?= e($g['url']) ?>" alt="<?= e($g['title'] ?? '') ?>" loading="lazy">
+          <img src="<?= e(img_url($g['url'])) ?>" alt="<?= e($g['title'] ?? '') ?>" loading="lazy">
         <?php endif; ?>
         <?php if ($g['title']): ?><figcaption><?= e($g['title']) ?></figcaption><?php endif; ?>
       </figure>

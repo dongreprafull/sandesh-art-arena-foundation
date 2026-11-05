@@ -22,7 +22,7 @@ include __DIR__ . '/includes/header.php';
   <div class="grid-cards">
     <?php foreach ($activities as $a): ?>
       <div class="tile">
-        <img src="<?= e($a['image'] ?: 'https://artarenastudio.com/assets/three-sectors-artwork.png') ?>" alt="<?= e($a['title']) ?>">
+        <img src="<?= e(img_url($a['image']) ?: 'https://artarenastudio.com/assets/three-sectors-artwork.png') ?>" alt="<?= e($a['title']) ?>">
         <div class="tile-body">
           <h3><?= e($a['title']) ?></h3>
           <p><?= e(mb_strimwidth($a['description'] ?? '', 0, 90, '…')) ?></p>
@@ -40,7 +40,7 @@ include __DIR__ . '/includes/header.php';
   <div class="grid-cards">
     <?php foreach ($events as $ev): ?>
       <div class="event-card">
-        <img src="<?= e($ev['image'] ?: 'https://artarenastudio.com/assets/three-sectors-artwork-v2.png') ?>" alt="<?= e($ev['title']) ?>">
+        <img src="<?= e(img_url($ev['image']) ?: 'https://artarenastudio.com/assets/three-sectors-artwork-v2.png') ?>" alt="<?= e($ev['title']) ?>">
         <div class="event-body">
           <span class="event-date-badge"><?= e(date('d M Y', strtotime($ev['event_date']))) ?></span>
           <h3><?= e($ev['title']) ?></h3>

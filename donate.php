@@ -66,7 +66,7 @@ include __DIR__ . '/includes/header.php';
         <h3>Pay via UPI</h3>
         <p>UPI ID: <strong><?= e($s['upi_id'] ?? 'not configured') ?></strong></p>
         <?php if (!empty($s['upi_qr_image'])): ?>
-          <img src="<?= e($s['upi_qr_image']) ?>" alt="UPI QR code" style="max-width:220px;border-radius:12px;margin:1rem 0">
+          <img src="<?= e(img_url($s['upi_qr_image'])) ?>" alt="UPI QR code" style="max-width:220px;border-radius:12px;margin:1rem 0">
         <?php endif; ?>
         <p>Amount: <strong>₹<?= e(number_format($donation['amount'], 2)) ?></strong></p>
         <p>After paying, upload a screenshot of the payment below. Our team will verify it and send you a receipt.</p>
