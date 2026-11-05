@@ -4,7 +4,4 @@
 <Files "schema_foundation.sql">
   Require all denied
 </Files>
-<Files "setup.php">
-  Require all denied
-</Files>
 Options -Indexes
